@@ -1,8 +1,9 @@
 export default class DataProcessor {
 
     static dataToPoints(data, limit, width = 1, height = 1, margin = 0, max = this.max(data), min = this.min(data)) {
-
-        const len = data.length;
+        
+        const doubleChart = data[0] instanceof Array;
+        const len = doubleChart ? this.max(data[0]) : data.length;
 
         if (limit && limit < len) {
             data = data.slice(len - limit);
@@ -10,13 +11,23 @@ export default class DataProcessor {
 
         const vfactor = (height - margin * 2) / ((max - min) || 1);
         const hfactor = (width - margin * 2) / ((limit || len) - (len > 1 ? 1 : 0));
-
-        return data.map((d, i) => {
-            return {
-                x: i * hfactor + margin,
-                y: ((max === min ? height : max) - d) * vfactor + margin
+        
+        if (doubleChart){
+            let chartPoints = [];
+            for (var i in data[0]){
+                chartPoints.push({
+                    x: data[0][i] * hfactor + margin,
+                    y: ((max === min ? height : max) - data[1][i]) * vfactor + margin
+                });
             }
-        });
+        } else {
+            return data.map((d, i) => {
+                return {
+                    x: i * hfactor + margin,
+                    y: ((max === min ? height : max) - d) * vfactor + margin
+                }
+            });
+        }
     }
 
     static max(data) {
