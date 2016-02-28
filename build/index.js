@@ -536,41 +536,47 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _classCallCheck(this, DataProcessor);
 	    }
 
-	    DataProcessor.dataToPoints = function dataToPoints(data, limit) {
-	        var width = arguments.length <= 2 || arguments[2] === undefined ? 1 : arguments[2];
-	        var height = arguments.length <= 3 || arguments[3] === undefined ? 1 : arguments[3];
-	        var margin = arguments.length <= 4 || arguments[4] === undefined ? 0 : arguments[4];
-	        var max = arguments.length <= 5 || arguments[5] === undefined ? this.max(data) : arguments[5];
-	        var min = arguments.length <= 6 || arguments[6] === undefined ? this.min(data) : arguments[6];
-	        return (function () {
+	    DataProcessor.dataToPoints = function dataToPoints(data, limit, width, height, margin, max, min) {
+	        if (width === undefined) width = 1;
+	        if (height === undefined) height = 1;
+	        if (margin === undefined) margin = 0;
 
-	            var doubleChart = data[0] instanceof Array;
-	            var len = doubleChart ? this.max(data[0]) : data.length;
+	        var doubleChart = data[0] instanceof Array;
+	        var len = doubleChart ? this.max(data[0]) : data.length;
 
-	            if (limit && limit < len) {
-	                data = data.slice(len - limit);
-	            }
+	        if (doubleChart) {
+	            max = max ? max : this.max(data[1]);
+	            min = min ? min : this.min(data[1]);
+	        } else {
+	            max = max ? max : this.max(data);
+	            min = min ? min : this.min(data);
+	        }
 
-	            var vfactor = (height - margin * 2) / (max - min || 1);
-	            var hfactor = (width - margin * 2) / ((limit || len) - (len > 1 ? 1 : 0));
+	        if (limit && limit < len) {
+	            data = data.slice(len - limit);
+	        }
 
-	            if (doubleChart) {
-	                var chartPoints = [];
-	                for (var i in data[0]) {
-	                    chartPoints.push({
-	                        x: data[0][i] * hfactor + margin,
-	                        y: ((max === min ? height : max) - data[1][i]) * vfactor + margin
-	                    });
-	                }
-	            } else {
-	                return data.map(function (d, i) {
-	                    return {
-	                        x: i * hfactor + margin,
-	                        y: ((max === min ? height : max) - d) * vfactor + margin
-	                    };
+	        var vfactor = (height - margin * 2) / (max - min || 1);
+	        var hfactor = (width - margin * 2) / ((limit || len) - (len > 1 ? 1 : 0));
+
+	        if (doubleChart) {
+	            var chartPoints = [];
+
+	            for (var i in data[0]) {
+	                chartPoints.push({
+	                    x: data[0][i] * hfactor + margin,
+	                    y: ((max === min ? height : max) - data[1][i]) * vfactor + margin
 	                });
 	            }
-	        }).apply(this, arguments);
+	            return chartPoints;
+	        } else {
+	            return data.map(function (d, i) {
+	                return {
+	                    x: i * hfactor + margin,
+	                    y: ((max === min ? height : max) - d) * vfactor + margin
+	                };
+	            });
+	        }
 	    };
 
 	    DataProcessor.max = function max(data) {
